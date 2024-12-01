@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -374,57 +373,4 @@ func remove(list []string, item string) []string {
 		}
 	}
 	return result
-}
-
-func determineLocalNetworks() ([]string, error) {
-	var localNetworks []string
-
-	interfaces, err := net.Interfaces()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get network interfaces: %v", err)
-	}
-
-	for _, iface := range interfaces {
-		// Skip interfaces that are down or don't support IPs
-		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
-			continue
-		}
-
-		addrs, err := iface.Addrs()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get addresses for interface %s: %v", iface.Name, err)
-		}
-
-		for _, addr := range addrs {
-			// Only process IPNet addresses (IP + subnet mask)
-			ipNet, ok := addr.(*net.IPNet)
-			if !ok || ipNet.IP.IsLoopback() {
-				continue
-			}
-
-			// Check if the IP is in a private range
-			if isPrivateIP(ipNet.IP) {
-				localNetworks = append(localNetworks, ipNet.String())
-			}
-		}
-	}
-
-	return localNetworks, nil
-}
-
-func isPrivateIP(ip net.IP) bool {
-	privateBlocks := []string{
-		"10.0.0.0/8",
-		"172.16.0.0/12",
-		"192.168.0.0/16",
-	}
-
-	for _, block := range privateBlocks {
-		_, cidr, _ := net.ParseCIDR(block)
-		if cidr.Contains(ip) {
-			return true
-		}
-	}
-
-	return false
 }

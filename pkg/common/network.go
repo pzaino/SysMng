@@ -15,7 +15,10 @@
 // Package common package is used to store common functions and variables
 package common
 
-import "net"
+import (
+	"fmt"
+	"net"
+)
 
 // GetHostIP returns the host IP address
 func GetHostIP() string {
@@ -35,4 +38,57 @@ func GetHostIP() string {
 		}
 	}
 	return hostIP
+}
+
+func DetermineLocalNetworks() ([]string, error) {
+	var localNetworks []string
+
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get network interfaces: %v", err)
+	}
+
+	for _, iface := range interfaces {
+		// Skip interfaces that are down or don't support IPs
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get addresses for interface %s: %v", iface.Name, err)
+		}
+
+		for _, addr := range addrs {
+			// Only process IPNet addresses (IP + subnet mask)
+			ipNet, ok := addr.(*net.IPNet)
+			if !ok || ipNet.IP.IsLoopback() {
+				continue
+			}
+
+			// Check if the IP is in a private range
+			if IsPrivateIP(ipNet.IP) {
+				localNetworks = append(localNetworks, ipNet.String())
+			}
+		}
+	}
+
+	return localNetworks, nil
+}
+
+func IsPrivateIP(ip net.IP) bool {
+	privateBlocks := []string{
+		"10.0.0.0/8",
+		"172.16.0.0/12",
+		"192.168.0.0/16",
+	}
+
+	for _, block := range privateBlocks {
+		_, cidr, _ := net.ParseCIDR(block)
+		if cidr.Contains(ip) {
+			return true
+		}
+	}
+
+	return false
 }
