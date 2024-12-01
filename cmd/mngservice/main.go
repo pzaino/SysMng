@@ -20,7 +20,7 @@ import (
 
 	"golang.org/x/time/rate"
 
-	cmn "github.com/pzaino/SysMng/pkg/common"
+	cmn "github.com/pzaino/sysmng/pkg/common"
 	cfg "github.com/pzaino/thecrowler/pkg/config"
 	cdb "github.com/pzaino/thecrowler/pkg/database"
 )

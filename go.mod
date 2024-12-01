@@ -1,4 +1,4 @@
-module SysMng
+module sysmng
 
 go 1.23.3
 
