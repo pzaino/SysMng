@@ -1,4 +1,4 @@
-module sysmng
+module github.com/pzaino/sysmng
 
 go 1.23.3
 
