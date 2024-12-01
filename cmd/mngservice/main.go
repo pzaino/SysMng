@@ -21,8 +21,7 @@ import (
 	"golang.org/x/time/rate"
 
 	cmn "github.com/pzaino/sysmng/pkg/common"
-	cfg "github.com/pzaino/thecrowler/pkg/config"
-	cdb "github.com/pzaino/thecrowler/pkg/database"
+	cfg "github.com/pzaino/sysmng/pkg/config"
 )
 
 const (
@@ -35,8 +34,6 @@ var (
 	config      cfg.Config
 	configMutex = &sync.Mutex{}
 	limiter     *rate.Limiter
-
-	dbHandler cdb.Handler
 )
 
 func main() {
@@ -94,38 +91,8 @@ func main() {
 		os.Exit(-1)
 	}
 
-	// Get host IP address
-	hostIP := cmn.GetHostIP()
-	if hostIP == "" {
-		hostIP = "localhost"
-	}
-
-	// Get host name
-	hostName, err := os.Hostname()
-	if err != nil {
-		hostName = "crowler_vdi_1"
-	}
-
-	// Find the right Selenium configuration in config, use host name for it
-	var seleniumConfig cfg.Selenium
-	for _, s := range config.Selenium {
-		if s.Host == hostName {
-			seleniumConfig = s
-			break
-		}
-	}
-	if seleniumConfig.IsEmpty() {
-		// Search for HostIP
-		for _, s := range config.Selenium {
-			if s.Host == hostIP {
-				seleniumConfig = s
-				break
-			}
-		}
-	}
-
 	srv := &http.Server{
-		Addr: seleniumConfig.Host + ":" + fmt.Sprintf("%d", seleniumConfig.SysMng.Port),
+		Addr: config.API.Host + ":" + fmt.Sprintf("%d", config.API.Port),
 
 		// ReadHeaderTimeout is the amount of time allowed to read
 		// request headers. The connection's read deadline is reset
@@ -133,7 +100,7 @@ func main() {
 		// is considered too slow for the body. If ReadHeaderTimeout
 		// is zero, the value of ReadTimeout is used. If both are
 		// zero, there is no timeout.
-		ReadHeaderTimeout: time.Duration(seleniumConfig.SysMng.ReadHeaderTimeout) * time.Second,
+		ReadHeaderTimeout: time.Duration(config.API.ReadHeaderTimeout) * time.Second,
 
 		// ReadTimeout is the maximum duration for reading the entire
 		// request, including the body. A zero or negative value means
@@ -143,20 +110,20 @@ func main() {
 		// decisions on each request body's acceptable deadline or
 		// upload rate, most users will prefer to use
 		// ReadHeaderTimeout. It is valid to use them both.
-		ReadTimeout: time.Duration(seleniumConfig.SysMng.ReadTimeout) * time.Second,
+		ReadTimeout: time.Duration(config.API.ReadTimeout) * time.Second,
 
 		// WriteTimeout is the maximum duration before timing out
 		// writes of the response. It is reset whenever a new
 		// request's header is read. Like ReadTimeout, it does not
 		// let Handlers make decisions on a per-request basis.
 		// A zero or negative value means there will be no timeout.
-		WriteTimeout: time.Duration(seleniumConfig.SysMng.WriteTimeout) * time.Second,
+		WriteTimeout: time.Duration(config.API.WriteTimeout) * time.Second,
 
 		// IdleTimeout is the maximum amount of time to wait for the
 		// next request when keep-alive are enabled. If IdleTimeout
 		// is zero, the value of ReadTimeout is used. If both are
 		// zero, there is no timeout.
-		IdleTimeout: time.Duration(seleniumConfig.SysMng.Timeout) * time.Second,
+		IdleTimeout: time.Duration(config.API.Timeout) * time.Second,
 	}
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -210,23 +177,6 @@ func initAll(configFile *string, config *cfg.Config, lmt **rate.Limiter) error {
 		bl = 10
 	}
 	*lmt = rate.NewLimiter(rate.Limit(rl), bl)
-
-	// Initialize the database
-	connected := false
-	dbHandler, err = cdb.NewHandler(*config)
-	if err != nil {
-		cmn.DebugMsg(cmn.DbgLvlError, "Error allocating database resources: %v", err)
-	} else {
-		for !connected {
-			err = dbHandler.Connect(*config)
-			if err != nil {
-				cmn.DebugMsg(cmn.DbgLvlError, "Error opening database connection: %v", err)
-				time.Sleep(5 * time.Second)
-				continue
-			}
-			connected = true
-		}
-	}
 
 	return nil
 }
