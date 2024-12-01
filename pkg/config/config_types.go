@@ -44,16 +44,17 @@ type Remote struct {
 
 // APIConfig represents the system management API configuration
 type APIConfig struct {
-	Host              string `json:"host" yaml:"host"`                             // Hostname of the system management server
-	Port              int    `json:"port" yaml:"port"`                             // Port number of the system management server
-	Timeout           int    `json:"timeout" yaml:"timeout"`                       // Timeout for system management requests (in seconds)
-	SSLMode           string `json:"sslmode" yaml:"sslmode"`                       // SSL mode for system management connection (e.g., "disable")
-	CertFile          string `json:"cert_file" yaml:"cert_file"`                   // Path to the SSL certificate file
-	KeyFile           string `json:"key_file" yaml:"key_file"`                     // Path to the SSL key file
-	RateLimit         string `json:"rate_limit" yaml:"rate_limit"`                 // Rate limit values are tuples (for ex. "1,3") where 1 means allows 1 request per second with a burst of 3 requests
-	ReadHeaderTimeout int    `json:"readheader_timeout" yaml:"readheader_timeout"` // ReadHeaderTimeout is the amount of time allowed to read request headers.
-	ReadTimeout       int    `json:"read_timeout" yaml:"read_timeout"`             // ReadTimeout is the maximum duration for reading the entire request
-	WriteTimeout      int    `json:"write_timeout" yaml:"write_timeout"`           // WriteTimeout
+	Host              string `json:"host" yaml:"host"`                               // Hostname of the system management server
+	Port              int    `json:"port" yaml:"port"`                               // Port number of the system management server
+	Timeout           int    `json:"timeout" yaml:"timeout"`                         // Timeout for system management requests (in seconds)
+	SSLMode           string `json:"sslmode" yaml:"sslmode"`                         // SSL mode for system management connection (e.g., "disable")
+	CertFile          string `json:"cert_file" yaml:"cert_file"`                     // Path to the SSL certificate file
+	KeyFile           string `json:"key_file" yaml:"key_file"`                       // Path to the SSL key file
+	RateLimit         string `json:"rate_limit" yaml:"rate_limit"`                   // Rate limit values are tuples (for ex. "1,3") where 1 means allows 1 request per second with a burst of 3 requests
+	ReadHeaderTimeout int    `json:"readheader_timeout" yaml:"readheader_timeout"`   // ReadHeaderTimeout is the amount of time allowed to read request headers.
+	ReadTimeout       int    `json:"read_timeout" yaml:"read_timeout"`               // ReadTimeout is the maximum duration for reading the entire request
+	WriteTimeout      int    `json:"write_timeout" yaml:"write_timeout"`             // WriteTimeout
+	OnlyLocalRequests bool   `json:"only_local_requests" yaml:"only_local_requests"` // OnlyLocalRequests is a flag to allow only local requests
 }
 
 // EventsConfig represents the events service configuration

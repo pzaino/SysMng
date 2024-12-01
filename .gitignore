@@ -30,4 +30,6 @@ go.work.sum
 # Build artifacts
 ./bin/
 bin/
+config.yaml
+config.yml
 
