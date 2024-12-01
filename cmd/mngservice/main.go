@@ -1,4 +1,4 @@
-// Package main (sysmng) implements the CROWler VDI System Management.
+// Package main (SysMng) implements the CROWler VDI System Management.
 package main
 
 import (
